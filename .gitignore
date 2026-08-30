@@ -1,0 +1,11 @@
+# Secrets — never commit a key
+.env
+.env.*
+
+# Run output and the spend ledger (yours, not the repo's)
+out/
+*.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
