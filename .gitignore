@@ -1,6 +1,7 @@
-# Secrets — never commit a key
+# Secrets — never commit a key. .env.example is the template and IS tracked.
 .env
 .env.*
+!.env.example
 
 # Run output and the spend ledger (yours, not the repo's)
 out/
