@@ -10,3 +10,6 @@ out/
 # Python
 __pycache__/
 *.py[cod]
+
+# Agent-harness session state, if you drive this repo from one
+.claude/
