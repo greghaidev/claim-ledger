@@ -7,9 +7,13 @@ it on trust. If a figure appears in the report and not here, that is the gate's 
 to find.
 """
 import csv
+import os
 from collections import defaultdict
 
-with open("sales.csv") as f:
+# Resolve beside this file so the script runs from anywhere, not just example/.
+CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sales.csv")
+
+with open(CSV) as f:
     rows = [r for r in csv.DictReader(f)]
 
 for r in rows:

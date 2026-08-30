@@ -532,6 +532,13 @@ def _run_hold(session_id, message):
 def record_fail_hold(verdict, artifact, reason, rounds=0, spent=0.0):
     """On a dispatched FAIL only, record what the operator must disposition. Never raises.
 
+    OPTIONAL AGENT-HARNESS INTEGRATION, inert on its own. If an agent harness is driving
+    this gate and exports CLAUDE_CODE_SESSION_ID, the FAIL is written into that session's
+    work queue via a sibling `continuation.py`, so the session cannot quietly end on a
+    failed gate. With no such variable — a human at a shell, or CI — this returns
+    immediately and changes nothing. A missing continuation.py is caught and warned about,
+    never raised: a bookkeeping failure must not alter a verdict.
+
     Deliberately NOT on BLOCKED. A BLOCKED verdict is an invocation error — missing primary
     data/lineage, or a payload over the token ceiling — which the agent can fix in one step
     and re-run at $0. Holding there would stall a session that can resolve itself, which is
@@ -770,18 +777,25 @@ def build_user_prompt(artifact, primary, lineage, db_conf):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Fact-Check Gate reviewer-panel engine.")
-    ap.add_argument("--artifact", required=True, help="the final investor/customer-facing output")
+    ap = argparse.ArgumentParser(description="claim-ledger — a cross-lineage fact-check gate. Returns a per-claim "
+                    "ledger: TRACEABLE (with a cited source line), UNTRACEABLE, or "
+                    "CONTRADICTED. Exit 0 = PASS, 1 = FAIL/BLOCKED.")
+    ap.add_argument("--artifact", required=True, help="REQUIRED. The finished artifact whose claims are being checked.")
     ap.add_argument("--primary-data", action="append", default=[],
-                    help="primary source-of-record file/dir (repeatable)")
+                    help="REQUIRED by the intake gate. The source-of-record data the claims "
+                         "trace to; repeatable. A summary is not primary data. Narrow this "
+                         "to the files the claims actually use — a directory expands to "
+                         "every file under it, per seat, per round.")
     ap.add_argument("--lineage", action="append", default=[],
-                    help="data-lineage file/dir: how numbers were produced (repeatable)")
+                    help="REQUIRED by the intake gate. How the numbers were produced from the "
+                         "primary data — the script, query, or notes; repeatable.")
     ap.add_argument("--surface", default=None,
                     help="stable identity for the round counter (default: the artifact's "
                          "directory relative to the repo root, so a draft and its rendered "
                          "output count as ONE artifact across a repoint)")
     ap.add_argument("--db-confirmations", default=None,
-                    help="optional file of db-agent SQL source confirmations gathered by the driver")
+                    help="Optional. A file of mechanical source confirmations (e.g. figures "
+                         "re-derived in SQL against the source database) to hand the panel.")
     # DEFAULT IS light (changed 2026-07-30, operator call). Heavy is 12.6x light on the
     # same payload — measured $1.67 vs $0.13 a round at ~130K tokens — and the 2026-07-28
     # grind paid for NINE heavy rounds over one section pair, each re-verifying ~100

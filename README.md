@@ -78,6 +78,9 @@ Exit code `0` = PASS, `1` = FAIL or BLOCKED, so CI can gate on it.
 Heavy re-verifies every already-traceable claim at full price, so running it after every
 edit is how a $0.13 check becomes a $12 afternoon. Iterate light; spend heavy once.
 
+A round is slow as well as cheap — see the runtime note under Known limits before you
+assume a quiet terminal is a hang.
+
 The printed dollar figure is a **floor, not a forecast** — reasoning tokens are billed as
 output beyond `--max-tokens`, and real billing runs meaningfully higher. Treat it as an
 order-of-magnitude guard, which is what it was built to be.
@@ -129,8 +132,13 @@ against the live OpenRouter catalog; `--seated` checks just the default roster.
   results via `--db-confirmations`.
 - **A reviewer can only see what you hand it.** Narrow `--primary-data` to the sources the
   claims actually trace to; a fat payload is expensive and *worse*, not better.
-- **Runs take minutes, not seconds.** Reasoning models working through a long ledger commonly
-  take one to five minutes per seat, occasionally more on a slow provider day.
+- **Runs take minutes, not seconds — sometimes many.** The default `--reasoning-effort high`
+  is deliberate: the reviewer is the adjudicating seat, and the seat evaluation was
+  measured *saturated*, meaning it could not distinguish a safe reduction in effort from an
+  undetectable one (see `eval/`). The cost of that caution is wall-clock. A single light
+  seat commonly runs two to five minutes and, on a slow provider day, has been observed past
+  fifteen. If you are iterating and want a faster loop, `--reasoning-effort medium` is a
+  reasonable trade for a draft — just spend the default at ship.
 - **The price table is a hand-maintained snapshot** and vendors reprice without notice. A
   stale row makes the cost floor wrong. Run `check_prices.py`.
 
