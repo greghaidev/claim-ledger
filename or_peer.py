@@ -163,7 +163,7 @@ def resolve_env_path(env_path=".env"):
     try:
         common = subprocess.run(
             ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True, text=True, encoding="utf-8", timeout=5,
         )
         if common.returncode == 0 and common.stdout.strip():
             # <main-worktree>/.git -> its parent is the main worktree root
@@ -199,7 +199,7 @@ def load_key(env_path=".env", var=None):
     resolved = resolve_env_path(env_path)
     if resolved:
         found = {}
-        with open(resolved) as fh:
+        with open(resolved, encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
                 for name in candidates:
@@ -306,7 +306,7 @@ def _resolve_spend_log():
     try:
         out = subprocess.run(
             ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, encoding="utf-8", timeout=10,
             cwd=os.path.dirname(os.path.abspath(__file__)))
         if out.returncode == 0 and out.stdout.strip():
             root = os.path.dirname(out.stdout.strip())
@@ -978,4 +978,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Windows writes the ANSI code page to a pipe or console by default; a printed arrow or
+    # em dash in a claim would otherwise crash the run.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
     main()

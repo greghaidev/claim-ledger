@@ -398,7 +398,7 @@ def _repo_root():
     try:
         out = subprocess.run(
             ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, encoding="utf-8", timeout=10,
             cwd=os.path.dirname(os.path.abspath(__file__)))
         if out.returncode == 0 and out.stdout.strip():
             root = os.path.dirname(out.stdout.strip())
@@ -521,7 +521,7 @@ def _run_hold(session_id, message):
     """Record the hold via the same CLI the agent uses. Returns True on success."""
     proc = subprocess.run(
         [sys.executable, CONTINUATION, "--session", session_id, "hold", message],
-        capture_output=True, text=True, timeout=30,
+        capture_output=True, text=True, encoding="utf-8", timeout=30,
         cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     if proc.returncode != 0:
         print(f"  (warning: could not record hold: {proc.stderr.strip()[:200]})",
@@ -1058,4 +1058,9 @@ def render_md(result):
 
 
 if __name__ == "__main__":
+    # Windows writes the ANSI code page to a pipe or console by default; a printed arrow or
+    # em dash in a claim would otherwise crash the run.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
     main()
