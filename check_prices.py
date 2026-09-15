@@ -115,4 +115,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Windows writes the ANSI code page to a pipe or console by default; a printed arrow or
+    # em dash in a claim would otherwise crash the run.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

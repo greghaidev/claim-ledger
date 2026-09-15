@@ -13,7 +13,7 @@ from collections import defaultdict
 # Resolve beside this file so the script runs from anywhere, not just example/.
 CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sales.csv")
 
-with open(CSV) as f:
+with open(CSV, encoding="utf-8", newline="") as f:
     rows = [r for r in csv.DictReader(f)]
 
 for r in rows:
